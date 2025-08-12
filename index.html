@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cotizador Web</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-file-invoice-dollar"></i> Cotizador Web</h1>
+            <p>Crea y gestiona tus cotizaciones de manera sencilla</p>
+        </header>
+
+        <main>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="crear">Crear Cotización</button>
+                <button class="tab-btn" data-tab="historial">Historial</button>
+            </div>
+
+            <div class="tab-content active" id="crear">
+                <form id="cotizacion-form">
+                    <div class="form-group">
+                        <label for="cliente"><i class="fas fa-user"></i> Cliente</label>
+                        <select id="cliente" required>
+                            <option value="">Seleccione un cliente</option>
+                            <!-- Opciones se llenarán con JS -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label><i class="fas fa-boxes"></i> Items</label>
+                        <div class="items-container">
+                            <div class="item-row">
+                                <select class="item-select" required>
+                                    <option value="">Seleccione un item</option>
+                                    <!-- Opciones se llenarán con JS -->
+                                </select>
+                                <input type="number" class="item-quantity" min="1" value="1" required>
+                                <span class="item-price">$0.00</span>
+                                <button type="button" class="btn-remove-item"><i class="fas fa-trash"></i></button>
+                            </div>
+                        </div>
+                        <button type="button" id="add-item" class="btn-secondary">
+                            <i class="fas fa-plus"></i> Agregar Item
+                        </button>
+                    </div>
+
+                    <div class="summary">
+                        <h3>Resumen</h3>
+                        <div class="summary-items" id="summary-items">
+                            <!-- Items se mostrarán aquí -->
+                        </div>
+                        <div class="total">
+                            <span>Total:</span>
+                            <span id="total-amount">$0.00</span>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cotización
+                    </button>
+                </form>
+            </div>
+
+            <div class="tab-content" id="historial">
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Buscar cotizaciones...">
+                    <button id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+                <div class="cotizaciones-list" id="cotizaciones-list">
+                    <!-- Lista de cotizaciones se cargará aquí -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para ver cotización -->
+    <div class="modal" id="cotizacion-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Cotización #</h2>
+            <div class="modal-body" id="modal-body">
+                <!-- Contenido de la cotización -->
+            </div>
+            <div class="modal-actions">
+                <button id="download-pdf" class="btn-primary">
+                    <i class="fas fa-file-pdf"></i> Descargar PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
