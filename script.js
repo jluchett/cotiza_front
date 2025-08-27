@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Variables globales
-    const API_URL = 'https://your-api-url.onrender.com/api'; // Reemplazar con tu URL de Render
+    const API_URL = 'https://cotiza-back.onrender.com/api'; // Reemplazar con tu URL de Render
     let clientes = [];
     let items = [];
     let cotizaciones = [];
@@ -99,6 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`${API_URL}/clientes`);
             if (!response.ok) throw new Error('Error al obtener clientes');
             clientes = await response.json();
+            console.log("Clientes cargados:", clientes);
         } catch (error) {
             showError('No se pudieron cargar los clientes');
             console.error(error);
@@ -110,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`${API_URL}/items`);
             if (!response.ok) throw new Error('Error al obtener items');
             items = await response.json();
+            console.log("Items cargados:", items);
         } catch (error) {
             showError('No se pudieron cargar los items');
             console.error(error);
@@ -120,7 +122,10 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const response = await fetch(`${API_URL}/cotizaciones`);
             if (!response.ok) throw new Error('Error al obtener cotizaciones');
-            cotizaciones = await response.json();
+            const cotizacionesPag = await response.json();
+            console.log("Cotizaciones paginadas:", cotizacionesPag);
+            cotizaciones = cotizacionesPag.cotizaciones;
+            console.log("Cotizaciones cargadas:", cotizaciones);
         } catch (error) {
             showError('No se pudieron cargar las cotizaciones');
             console.error(error);
@@ -148,7 +153,7 @@ document.addEventListener('DOMContentLoaded', function() {
             items.forEach(item => {
                 const option = document.createElement('option');
                 option.value = item.id;
-                option.textContent = `${item.name} ($${item.price.toFixed(2)})`;
+                option.textContent = item.name;
                 option.dataset.price = item.price;
                 select.appendChild(option);
             });
@@ -290,8 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
             resetForm();
             
             // Mostrar la cotización creada
+            console.log("Cotización creada:", data);
             currentCotizacionId = data.id;
-            showCotizacionModal(data);
+            showCotizacionModal(currentCotizacionId);
             
             // Actualizar lista de cotizaciones
             await fetchCotizaciones();
@@ -323,15 +329,15 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = document.createElement('div');
             card.className = 'cotizacion-card';
             card.innerHTML = `
-                <h3>Cotización #${cotizacion.id.split('_')[1]}</h3>
+                <h3>Cotización #${cotizacion.id}</h3>
                 <p class="cliente">${cotizacion.cliente_nombre}</p>
                 <p class="fecha">${new Date(cotizacion.fecha).toLocaleDateString()}</p>
-                <p class="total">Total: $${cotizacion.total.toFixed(2)}</p>
+                <p class="total">Total: $${cotizacion.total}</p>
             `;
             
             card.addEventListener('click', () => {
                 currentCotizacionId = cotizacion.id;
-                showCotizacionModal(cotizacion);
+                showCotizacionModal(currentCotizacionId);
             });
             
             cotizacionesList.appendChild(card);
@@ -363,7 +369,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const card = document.createElement('div');
             card.className = 'cotizacion-card';
             card.innerHTML = `
-                <h3>Cotización #${cotizacion.id.split('_')[1]}</h3>
+                <h3>Cotización #${cotizacion.id}</h3>
                 <p class="cliente">${cotizacion.cliente_nombre}</p>
                 <p class="fecha">${new Date(cotizacion.fecha).toLocaleDateString()}</p>
                 <p class="total">Total: $${cotizacion.total.toFixed(2)}</p>
@@ -371,52 +377,89 @@ document.addEventListener('DOMContentLoaded', function() {
             
             card.addEventListener('click', () => {
                 currentCotizacionId = cotizacion.id;
-                showCotizacionModal(cotizacion);
+                showCotizacionModal(currentCotizacionId);
             });
             
             cotizacionesList.appendChild(card);
         });
     }
     
-    function showCotizacionModal(cotizacion) {
-        modalTitle.textContent = `Cotización #${cotizacion.id.split('_')[1]}`;
-        
-        modalBody.innerHTML = `
-            <div class="modal-info">
-                <p><strong>Cliente:</strong> ${cotizacion.cliente_nombre}</p>
-                <p><strong>Fecha:</strong> ${new Date(cotizacion.fecha).toLocaleDateString()}</p>
-            </div>
+    async function showCotizacionModal(cotizacionId) {
+        try {
+            console.log("Obteniendo cotización ID:", cotizacionId);
             
-            <div class="modal-items">
-                <h4>Items</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Descripción</th>
-                            <th>Precio Unitario</th>
-                            <th>Cantidad</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${cotizacion.items.map(item => `
+            // Mostrar loader mientras carga
+            modalBody.innerHTML = `
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Cargando cotización...</p>
+                </div>
+            `;
+            modal.style.display = 'flex';
+
+            //Hacer llamada al endpoint
+            const response = await fetch(`${API_URL}/cotizaciones/${cotizacionId}`);
+            if (!response.ok) throw new Error(`Error ${response.status}: ${response.statusText}`);
+
+            const cotizacionData = await response.json();
+            console.log("Cotización obtenida:", cotizacionData);
+
+            // Verificar que la cotización tenga los datos necesarios
+            if (!cotizacionData || !cotizacionData.items) {
+                throw new Error('Datos de cotización incompletos');
+            }
+
+            modalTitle.textContent = `Cotización #${cotizacionData.id}`;
+
+            modalBody.innerHTML = `
+                <div class="modal-info">
+                    <p><strong>Cliente:</strong> ${cotizacionData.cliente_nombre}</p>
+                    <p><strong>Fecha:</strong> ${new Date(cotizacionData.fecha).toLocaleDateString()}</p>
+                </div>
+                
+                <div class="modal-items">
+                    <h4>Items</h4>
+                    <table>
+                        <thead>
                             <tr>
-                                <td>${item.name}</td>
-                                <td>$${item.price.toFixed(2)}</td>
-                                <td>${item.quantity}</td>
-                                <td>$${(item.price * item.quantity).toFixed(2)}</td>
+                                <th>Descripción</th>
+                                <th>Precio Unitario</th>
+                                <th>Cantidad</th>
+                                <th>Total</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="modal-total">
-                <p><strong>Total:</strong> $${cotizacion.total.toFixed(2)}</p>
-            </div>
-        `;
-        
-        modal.style.display = 'flex';
+                        </thead>
+                        <tbody>
+                            ${cotizacionData.items.map(item => `
+                                <tr>
+                                    <td>${item.name}</td>
+                                    <td>$${parseFloat(item.price).toFixed(2)}</td>
+                                    <td>${item.quantity}</td>
+                                    <td>$${(parseFloat(item.price) * parseFloat(item.quantity)).toFixed(2)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="modal-total">
+                    <p><strong>Total:</strong> $${parseFloat(cotizacionData.total).toFixed(2)}</p>
+                </div>
+            `;
+
+        } catch (error) {
+            console.error('Error al cargar la cotización:', error);
+            modalBody.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <h4>Error al cargar la cotización</h4>
+                    <p>${error.message}</p>
+                    <button onclick="showCotizacionModal('${cotizacionId}')" class="btn-secondary">
+                        <i class="fas fa-redo"></i> Reintentar
+                    </button>
+                </div>
+            `;
+        }
+
     }
     
     async function downloadPDF() {
