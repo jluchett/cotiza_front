@@ -95,12 +95,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Cerrar modal al hacer click en cancelar
         document.querySelector('[data-modal="item-modal"].btn-secondary').addEventListener('click', () => {
-            closeModal('item-modal');
+            cerrarModal('item-modal');
         });
         
         // Cerrar modal con la X
         document.querySelector('[data-modal="item-modal"].close-modal').addEventListener('click', () => {
-            closeModal('item-modal');
+            cerrarModal('item-modal');
         });
     }
     
@@ -237,7 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Función para cerrar modales
-    function closeModal(modalId) {
+    function cerrarModal(modalId) {
         document.getElementById(modalId).style.display = 'none';
     }
 
@@ -268,9 +268,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const isEdit = itemIdInput.value;
-        const url = isEdit ? `${API_URL}/items/${itemIdInput.value}` : `${API_URL}/items`;
-        const method = isEdit ? 'PUT' : 'POST';
+        const url = `${API_URL}/items`;
+        const method = 'POST';
         
         try {
             const response = await fetch(url, {
@@ -288,10 +287,10 @@ document.addEventListener('DOMContentLoaded', function() {
             
             const result = await response.json();
             
-            showSuccess(isEdit ? 'Item actualizado exitosamente' : 'Item creado exitosamente');
+            showSuccess('Item creado exitosamente');
             
             // Cerrar modal y actualizar datos
-            closeModal('item-modal');
+            cerrarModal('item-modal');
             await fetchItems();
             renderItemsSelect();
             
@@ -432,11 +431,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Mostrar éxito y resetear formulario
             showSuccess('Cotización creada exitosamente');
+            
             resetForm();
             
             // Mostrar la cotización creada
             console.log("Cotización creada:", data);
-            currentCotizacionId = data.id;
+            currentCotizacionId = data.cotizacion.id;
             showCotizacionModal(currentCotizacionId);
             
             // Actualizar lista de cotizaciones
@@ -681,11 +681,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.head.appendChild(style);
         document.body.appendChild(notification);
         
-        // Auto-remover después de 5 segundos
+        // Auto-remover después de 10 segundos
         setTimeout(() => {
             if (notification.parentElement) {
                 notification.remove();
             }
-        }, 5000);
+        }, 10000);
     }
 });
