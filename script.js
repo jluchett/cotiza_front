@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let clientes = [];
     let items = [];
     let cotizaciones = [];
+    let itemTypes = [];
     
     // Elementos del DOM
     const cotizacionForm = document.getElementById('cotizacion-form');
@@ -23,6 +24,15 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalBody = document.getElementById('modal-body');
     const downloadPdfBtn = document.getElementById('download-pdf');
     
+    const itemModal = document.getElementById('item-modal');
+    const itemForm = document.getElementById('item-form');
+    const itemNameInput = document.getElementById('item-name');
+    const itemDescriptionInput = document.getElementById('item-description');
+    const itemPriceInput = document.getElementById('item-price');
+    const itemTypeSelect = document.getElementById('item-type');
+    const itemIdInput = document.getElementById('item-id');
+    const itemModalTitle = document.getElementById('item-modal-title');
+
     let currentCotizacionId = null;
     
     // Inicializar la aplicación
@@ -33,10 +43,12 @@ document.addEventListener('DOMContentLoaded', function() {
         await fetchClientes();
         await fetchItems();
         await fetchCotizaciones();
+        await fetchItemTypes(); // ← Nueva función
         setupEventListeners();
         renderClientesSelect();
         renderItemsSelect();
         renderCotizacionesList();
+        renderItemTypesSelect(); // ← Nueva función
         addItemRow();
     }
     
@@ -74,6 +86,22 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Descargar PDF
         downloadPdfBtn.addEventListener('click', downloadPDF);
+
+        // Botón para abrir modal de nuevo item
+        document.getElementById('btn-add-item').addEventListener('click', openItemModal);
+        
+        // Formulario de item
+        itemForm.addEventListener('submit', handleItemSubmit);
+
+        // Cerrar modal al hacer click en cancelar
+        document.querySelector('[data-modal="item-modal"].btn-secondary').addEventListener('click', () => {
+            closeModal('item-modal');
+        });
+        
+        // Cerrar modal con la X
+        document.querySelector('[data-modal="item-modal"].close-modal').addEventListener('click', () => {
+            closeModal('item-modal');
+        });
     }
     
     function switchTab(tabId) {
@@ -131,6 +159,29 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(error);
         }
     }
+
+    // Nueva función para obtener tipos de items
+    async function fetchItemTypes() {
+        try {
+            const response = await fetch(`${API_URL}/items/tipos`);
+            if (!response.ok) throw new Error('Error al obtener tipos de items');
+            itemTypes = await response.json();
+        } catch (error) {
+            showError('No se pudieron cargar los tipos de items');
+            console.error(error);
+        }
+    }
+
+    // Función para renderizar tipos de items en el select
+    function renderItemTypesSelect() {
+        itemTypeSelect.innerHTML = '<option value="">Seleccione un tipo</option>';
+        itemTypes.forEach(type => {
+            const option = document.createElement('option');
+            option.value = type.id;
+            option.textContent = type.name;
+            itemTypeSelect.appendChild(option);
+        });
+    }
     
     function renderClientesSelect() {
         clienteSelect.innerHTML = '<option value="">Seleccione un cliente</option>';
@@ -164,6 +215,95 @@ document.addEventListener('DOMContentLoaded', function() {
                 updateItemPrice(select);
             }
         });
+    }
+
+    // Función para abrir el modal de item
+    function openItemModal(item = null) {
+        if (item) {
+            // Modo edición
+            itemModalTitle.textContent = 'Editar Item';
+            itemIdInput.value = item.id;
+            itemNameInput.value = item.name;
+            itemDescriptionInput.value = item.description || '';
+            itemPriceInput.value = item.price;
+            itemTypeSelect.value = item.type_id;
+        } else {
+            // Modo creación
+            itemModalTitle.textContent = 'Crear Nuevo Item';
+            itemForm.reset();
+            itemIdInput.value = '';
+        }
+        itemModal.style.display = 'flex';
+    }
+
+    // Función para cerrar modales
+    function closeModal(modalId) {
+        document.getElementById(modalId).style.display = 'none';
+    }
+
+    // Manejar envío del formulario de item
+    async function handleItemSubmit(e) {
+        e.preventDefault();
+        
+        const formData = {
+            name: itemNameInput.value.trim(),
+            description: itemDescriptionInput.value.trim(),
+            price: parseFloat(itemPriceInput.value),
+            type_id: parseInt(itemTypeSelect.value)
+        };
+        
+        // Validaciones
+        if (!formData.name) {
+            showError('El nombre del item es requerido');
+            return;
+        }
+        
+        if (!formData.price || formData.price <= 0) {
+            showError('El precio debe ser mayor a 0');
+            return;
+        }
+        
+        if (!formData.type_id) {
+            showError('Seleccione un tipo de item');
+            return;
+        }
+        
+        const isEdit = itemIdInput.value;
+        const url = isEdit ? `${API_URL}/items/${itemIdInput.value}` : `${API_URL}/items`;
+        const method = isEdit ? 'PUT' : 'POST';
+        
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al guardar el item');
+            }
+            
+            const result = await response.json();
+            
+            showSuccess(isEdit ? 'Item actualizado exitosamente' : 'Item creado exitosamente');
+            
+            // Cerrar modal y actualizar datos
+            closeModal('item-modal');
+            await fetchItems();
+            renderItemsSelect();
+            
+            // Si estamos en la pestaña de crear cotización, actualizar
+            if (document.getElementById('crear').classList.contains('active')) {
+                updateSummary();
+            }
+            
+        } catch (error) {
+            showError(error.message);
+            console.error('Error:', error);
+        }
     }
     
     function addItemRow() {
@@ -485,13 +625,67 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Reemplaza tus funciones showError/showSuccess con estas versiones mejoradas
     function showError(message) {
-        // Implementar notificación de error (puedes usar Toastify, SweetAlert, etc.)
-        alert(`Error: ${message}`);
+        showNotification(message, 'error');
     }
-    
+
     function showSuccess(message) {
-        // Implementar notificación de éxito
-        alert(`Éxito: ${message}`);
+        showNotification(message, 'success');
+    }
+
+    function showNotification(message, type = 'info') {
+        // Crear notificación
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+            <button onclick="this.parentElement.remove()">&times;</button>
+        `;
+        
+        // Estilos para notificaciones
+        const style = document.createElement('style');
+        style.textContent = `
+            .notification {
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                border-radius: 5px;
+                color: white;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 10000;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            }
+            .notification.success { background: #28a745; }
+            .notification.error { background: #dc3545; }
+            .notification button {
+                background: none;
+                border: none;
+                color: white;
+                cursor: pointer;
+                font-size: 1.2rem;
+                margin-left: 10px;
+            }
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+        `;
+        
+        document.head.appendChild(style);
+        document.body.appendChild(notification);
+        
+        // Auto-remover después de 5 segundos
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 5000);
     }
 });
