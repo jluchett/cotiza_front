@@ -345,6 +345,37 @@ select:focus, input:focus {
     gap: 10px;
 }
 
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #007bff;
+}
+
+.loading .fa-spinner {
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.error {
+    text-align: center;
+    padding: 30px;
+    color: #dc3545;
+}
+
+.error .fa-exclamation-triangle {
+    font-size: 2rem;
+    margin-bottom: 15px;
+}
+
+.error h4 {
+    margin: 10px 0;
+}
+
+.error p {
+    margin-bottom: 20px;
+    color: #6c757d;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .item-row {
