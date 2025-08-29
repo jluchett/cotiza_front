@@ -512,7 +512,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <h3>Cotización #${cotizacion.id}</h3>
                 <p class="cliente">${cotizacion.cliente_nombre}</p>
                 <p class="fecha">${new Date(cotizacion.fecha).toLocaleDateString()}</p>
-                <p class="total">Total: $${cotizacion.total.toFixed(2)}</p>
+                <p class="total">Total: $${parseFloat(cotizacion.total).toFixed(2)}</p>
             `;
             
             card.addEventListener('click', () => {
