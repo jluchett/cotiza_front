@@ -710,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showSuccess('Cliente creado exitosamente');
             
             // Cerrar modal
-            closeModal('cliente-modal');
+            cerrarModal('cliente-modal');
             
             // Actualizar lista de clientes y select
             await fetchClientes();
