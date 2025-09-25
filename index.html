@@ -24,10 +24,14 @@
             <div class="tab-content active" id="crear">
                 <form id="cotizacion-form">
                     <div class="form-group">
-                        <label for="cliente"><i class="fas fa-user"></i> Cliente</label>
+                        <div class="form-header">
+                            <label for="cliente"><i class="fas fa-user"></i> Cliente</label>
+                            <button type="button" id="btn-add-cliente" class="btn-small">
+                                <i class="fas fa-plus"></i> Nuevo Cliente
+                            </button>
+                        </div>
                         <select id="cliente" required>
                             <option value="">Seleccione un cliente</option>
-                            <!-- Opciones se llenarán con JS -->
                         </select>
                     </div>
 
@@ -86,6 +90,27 @@
                     <i class="fas fa-file-pdf"></i> Descargar PDF
                 </button>
             </div>
+        </div>
+    </div>
+    <!-- Modal para crear nuevo cliente -->
+    <div class="modal" id="cliente-modal">
+        <div class="modal-content">
+            <span class="close-modal" data-modal="cliente-modal">&times;</span>
+            <h2>Crear Nuevo Cliente</h2>
+            
+            <form id="cliente-form">
+                <div class="form-group">
+                    <label for="cliente-nombre"><i class="fas fa-user"></i> Nombre del Cliente</label>
+                    <input type="text" id="cliente-nombre" required placeholder="Ej: Empresa ABC S.A. de C.V.">
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" data-modal="cliente-modal">Cancelar</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-save"></i> Guardar Cliente
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 

@@ -33,6 +33,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const itemIdInput = document.getElementById('item-id');
     const itemModalTitle = document.getElementById('item-modal-title');
 
+    // Variables globales adicionales para clientes
+    const clienteModal = document.getElementById('cliente-modal');
+    const clienteForm = document.getElementById('cliente-form');
+    const clienteNombreInput = document.getElementById('cliente-nombre');
+
     let currentCotizacionId = null;
     
     // Inicializar la aplicación
@@ -102,6 +107,28 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('[data-modal="item-modal"].close-modal').addEventListener('click', () => {
             cerrarModal('item-modal');
         });
+
+        // Botón para abrir modal de nuevo cliente
+        document.getElementById('btn-add-cliente').addEventListener('click', openClienteModal);
+        
+        // Formulario de cliente
+        clienteForm.addEventListener('submit', handleClienteSubmit);
+        
+        // Cerrar modal de cliente
+        document.querySelector('[data-modal="cliente-modal"].btn-secondary').addEventListener('click', () => {
+            cerrarModal('cliente-modal');
+        });
+        
+        document.querySelector('[data-modal="cliente-modal"].close-modal').addEventListener('click', () => {
+            cerrarModal('cliente-modal');
+        });
+    }
+
+    // Función para abrir el modal de cliente
+    function openClienteModal() {
+        clienteNombreInput.value = '';
+        clienteModal.style.display = 'flex';
+        clienteNombreInput.focus(); // Focus automático al input
     }
     
     function switchTab(tabId) {
@@ -184,13 +211,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function renderClientesSelect() {
+       const currentValue = clienteSelect.value;
+        
+        // Mostrar estado de loading si no hay clientes
+        if (clientes.length === 0) {
+            clienteSelect.innerHTML = '<option value="">Cargando clientes...</option>';
+            clienteSelect.disabled = true;
+            return;
+        }
+        
+        clienteSelect.disabled = false;
         clienteSelect.innerHTML = '<option value="">Seleccione un cliente</option>';
+        
         clientes.forEach(cliente => {
             const option = document.createElement('option');
             option.value = cliente.id;
             option.textContent = cliente.nombre;
             clienteSelect.appendChild(option);
         });
+        
+        // Restaurar valor seleccionado si existe
+        if (currentValue && clientes.some(cliente => cliente.id == currentValue)) {
+            clienteSelect.value = currentValue;
+        }
     }
     
     function renderItemsSelect() {
@@ -425,7 +468,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 })
             });
             
-            if (!response.ok) throw new Error('Error al crear cotización');
+            if (!response.ok) throw new Error('respuesta error al crear cotización');
             
             const data = await response.json();
             
@@ -624,6 +667,67 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error(error);
         }
     }
+
+    // Manejar envío del formulario de cliente
+    async function handleClienteSubmit(e) {
+        e.preventDefault();
+        
+        const nombre = clienteNombreInput.value.trim();
+        
+        // Validaciones
+        if (!nombre) {
+            showError('El nombre del cliente es requerido');
+            return;
+        }
+        
+        if (nombre.length < 2) {
+            showError('El nombre debe tener al menos 2 caracteres');
+            return;
+        }
+        
+        // Mostrar loading en el botón
+        const submitBtn = clienteForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        submitBtn.disabled = true;
+        
+        try {
+            const response = await fetch(`${API_URL}/clientes`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ nombre })
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error al crear el cliente');
+            }
+            
+            const result = await response.json();
+            
+            showSuccess('Cliente creado exitosamente');
+            
+            // Cerrar modal
+            closeModal('cliente-modal');
+            
+            // Actualizar lista de clientes y select
+            await fetchClientes();
+            renderClientesSelect();
+            
+            // Seleccionar automáticamente el nuevo cliente
+            clienteSelect.value = result.cliente.id;
+            
+        } catch (error) {
+            showError(error.message);
+            console.error('Error:', error);
+        } finally {
+            // Restaurar botón
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }
     
     // Reemplaza tus funciones showError/showSuccess con estas versiones mejoradas
     function showError(message) {
@@ -644,41 +748,6 @@ document.addEventListener('DOMContentLoaded', function() {
             <button onclick="this.parentElement.remove()">&times;</button>
         `;
         
-        // Estilos para notificaciones
-        const style = document.createElement('style');
-        style.textContent = `
-            .notification {
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 5px;
-                color: white;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                z-index: 10000;
-                max-width: 400px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                animation: slideIn 0.3s ease;
-            }
-            .notification.success { background: #28a745; }
-            .notification.error { background: #dc3545; }
-            .notification button {
-                background: none;
-                border: none;
-                color: white;
-                cursor: pointer;
-                font-size: 1.2rem;
-                margin-left: 10px;
-            }
-            @keyframes slideIn {
-                from { transform: translateX(100%); opacity: 0; }
-                to { transform: translateX(0); opacity: 1; }
-            }
-        `;
-        
-        document.head.appendChild(style);
         document.body.appendChild(notification);
         
         // Auto-remover después de 10 segundos
