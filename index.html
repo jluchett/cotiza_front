@@ -31,9 +31,16 @@
                             <select id="cliente" required>
                                 <option value="">Seleccione un cliente</option>
                             </select>
-                            <button type="button" id="btn-add-cliente" class="btn-secondary">
-                                <i class="fas fa-plus"></i> Agregar
-                            </button>
+                            <div class="button-group">
+                                <button type="button" id="btn-add-cliente" class="btn-secondary"
+                                    title="Agregar nuevo cliente">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <button type="button" id="btn-edit-cliente" class="btn-secondary"
+                                    title="Editar cliente seleccionado" disabled>
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            </div>
                         </div>
 
                     </div>
@@ -43,12 +50,18 @@
                         <div class="items-container">
 
                         </div>
-                        <button type="button" id="add-item" class="btn-secondary">
-                            <i class="fas fa-plus"></i> Agregar Item
-                        </button>
-                        <button type="button" id="btn-add-item" class="btn-primary">
-                            <i class="fas fa-plus"></i> Nuevo Item
-                        </button>
+                        <div class="button-group">
+                            <button type="button" id="add-item" class="btn-secondary">
+                                <i class="fas fa-plus"></i> Agregar Item
+                            </button>
+                            <button type="button" id="btn-add-item" class="btn-primary">
+                                <i class="fas fa-plus"></i> Nuevo Item
+                            </button>
+                            <button type="button" id="btn-edit-item" class="btn-secondary"
+                                title="Editar item seleccionado" disabled>
+                                <i class="fas fa-edit"></i> Editar Item
+                            </button>
+                        </div>
                     </div>
 
                     <div class="summary">
@@ -102,6 +115,7 @@
             <h2>Crear Nuevo Cliente</h2>
 
             <form id="cliente-form">
+                <input type="hidden" id="cliente-id">
                 <div class="form-group">
                     <label for="cliente-nombre"><i class="fas fa-user"></i> Nombre del Cliente</label>
                     <input type="text" id="cliente-nombre" required placeholder="Ej: Empresa ABC S.A. de C.V.">
