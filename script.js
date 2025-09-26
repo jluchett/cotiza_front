@@ -191,9 +191,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Función para abrir el modal de cliente
     function openClienteModal() {
-        clienteNombreInput.value = '';
+        if (cliente) {
+            // Modo edición
+            clienteModalTitle.textContent = 'Editar Cliente';
+            clienteIdInput.value = cliente.id;
+            clienteNombreInput.value = cliente.nombre;
+        } else {
+            // Modo creación
+            clienteModalTitle.textContent = 'Crear Nuevo Cliente';
+            clienteForm.reset();
+            clienteIdInput.value = '';
+        }
         clienteModal.style.display = 'flex';
-        clienteNombreInput.focus(); // Focus automático al input
+        clienteNombreInput.focus();
     }
     
     function switchTab(tabId) {
