@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Función para abrir el modal de cliente
-    function openClienteModal() {
+    function openClienteModal(cliente = null) {
         if (cliente) {
             // Modo edición
             clienteModalTitle.textContent = 'Editar Cliente';
@@ -302,6 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const option = document.createElement('option');
             option.value = cliente.id;
             option.textContent = cliente.nombre;
+            option.title = `ID: ${cliente.id}`; // Tooltip con ID
             clienteSelect.appendChild(option);
         });
         
@@ -309,6 +310,8 @@ document.addEventListener('DOMContentLoaded', function() {
         if (currentValue && clientes.some(cliente => cliente.id == currentValue)) {
             clienteSelect.value = currentValue;
         }
+         // Actualizar estado del botón de edición
+        btnEditCliente.disabled = !clienteSelect.value;
     }
     
     function renderItemsSelect() {
@@ -370,6 +373,9 @@ document.addEventListener('DOMContentLoaded', function() {
             type_id: parseInt(itemTypeSelect.value)
         };
         
+        const itemId = itemIdInput.value;
+        const isEdit = !!itemId;
+
         // Validaciones
         if (!formData.name) {
             showError('El nombre del item es requerido');
@@ -386,8 +392,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        const url = `${API_URL}/items`;
-        const method = 'POST';
+        const url = isEdit ? `${API_URL}/items/${itemId}` : `${API_URL}/items`;
+        const method = isEdit ? 'PUT' : 'POST';
         
         try {
             const response = await fetch(url, {
@@ -400,12 +406,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Error al guardar el item');
+                throw new Error(errorData.error || `Error al ${isEdit ? 'actualizar' : 'crear'} el item`);
             }
             
             const result = await response.json();
-            
-            showSuccess('Item creado exitosamente');
+            console.log('Resultado de hacer fetch en items', result);
+
+            showSuccess(`Item ${isEdit ? 'actualizado' : 'creado'} exitosamente`);  
             
             // Cerrar modal y actualizar datos
             cerrarModal('item-modal');
@@ -748,6 +755,8 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         const nombre = clienteNombreInput.value.trim();
+        const clienteId = clienteIdInput.value;
+        const isEdit = !!clienteId;
         
         // Validaciones
         if (!nombre) {
@@ -763,12 +772,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Mostrar loading en el botón
         const submitBtn = clienteForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + (isEdit ? 'Actualizando...' : 'Guardando...');
         submitBtn.disabled = true;
         
         try {
-            const response = await fetch(`${API_URL}/clientes`, {
-                method: 'POST',
+            const url = isEdit ? `${API_URL}/clientes/${clienteId}` : `${API_URL}/clientes`;
+            const method = isEdit ? 'PUT' : 'POST';
+            
+            const response = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json'
                 },
@@ -777,12 +789,12 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Error al crear el cliente');
+                throw new Error(errorData.error || `Error al ${isEdit ? 'actualizar' : 'crear'} el cliente`);
             }
             
             const result = await response.json();
             
-            showSuccess('Cliente creado exitosamente');
+            showSuccess(`Cliente ${isEdit ? 'actualizado' : 'creado'} exitosamente`);
             
             // Cerrar modal
             cerrarModal('cliente-modal');
@@ -791,8 +803,12 @@ document.addEventListener('DOMContentLoaded', function() {
             await fetchClientes();
             renderClientesSelect();
             
-            // Seleccionar automáticamente el nuevo cliente
-            clienteSelect.value = result.cliente.id;
+            // Seleccionar automáticamente el cliente editado/creado
+            if (isEdit) {
+                clienteSelect.value = clienteId;
+            } else {
+                clienteSelect.value = result.cliente.id;
+            }
             
         } catch (error) {
             showError(error.message);
