@@ -492,6 +492,27 @@ select:disabled {
     font-style: italic;
 }
 
+/* Agregar estos estilos */
+.select-with-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.select-with-buttons select {
+    flex: 1;
+}
+
+.select-with-buttons button {
+    padding: 0.5rem;
+    min-width: 2.5rem;
+}
+
+.select-with-buttons button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .item-row {

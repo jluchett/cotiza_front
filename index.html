@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header class="header">
@@ -24,21 +26,22 @@
             <div class="tab-content active" id="crear">
                 <form id="cotizacion-form">
                     <div class="form-group">
-                        <div class="form-header">
-                            <label for="cliente"><i class="fas fa-user"></i> Cliente</label>
-                            <button type="button" id="btn-add-cliente" class="btn-small">
-                                <i class="fas fa-plus"></i> Nuevo Cliente
+                        <label for="cliente"><i class="fas fa-user"></i> Cliente</label>
+                        <div class="select-with-buttons">
+                            <select id="cliente" required>
+                                <option value="">Seleccione un cliente</option>
+                            </select>
+                            <button type="button" id="btn-add-cliente" class="btn-secondary">
+                                <i class="fas fa-plus"></i> Agregar
                             </button>
                         </div>
-                        <select id="cliente" required>
-                            <option value="">Seleccione un cliente</option>
-                        </select>
+
                     </div>
 
                     <div class="form-group">
                         <label><i class="fas fa-boxes"></i> Items</label>
                         <div class="items-container">
-                            
+
                         </div>
                         <button type="button" id="add-item" class="btn-secondary">
                             <i class="fas fa-plus"></i> Agregar Item
@@ -97,7 +100,7 @@
         <div class="modal-content">
             <span class="close-modal" data-modal="cliente-modal">&times;</span>
             <h2>Crear Nuevo Cliente</h2>
-            
+
             <form id="cliente-form">
                 <div class="form-group">
                     <label for="cliente-nombre"><i class="fas fa-user"></i> Nombre del Cliente</label>
@@ -119,10 +122,10 @@
         <div class="modal-content">
             <span class="close-modal" data-modal="item-modal">&times;</span>
             <h2 id="item-modal-title">Crear Nuevo Item</h2>
-            
+
             <form id="item-form">
                 <input type="hidden" id="item-id">
-                
+
                 <div class="form-group">
                     <label for="item-name"><i class="fas fa-tag"></i> Nombre del Item</label>
                     <input type="text" id="item-name" required placeholder="Ej: Windows 10 Pro">
@@ -130,7 +133,8 @@
 
                 <div class="form-group">
                     <label for="item-description"><i class="fas fa-align-left"></i> Descripción (Opcional)</label>
-                    <textarea id="item-description" rows="3" placeholder="Descripción del producto o servicio"></textarea>
+                    <textarea id="item-description" rows="3"
+                        placeholder="Descripción del producto o servicio"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -158,4 +162,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
