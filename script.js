@@ -38,6 +38,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const clienteForm = document.getElementById('cliente-form');
     const clienteNombreInput = document.getElementById('cliente-nombre');
 
+    const btnEditCliente = document.getElementById('btn-edit-cliente');
+    const btnEditItem = document.getElementById('btn-edit-item');
+    const clienteIdInput = document.getElementById('cliente-id');
+    const clienteModalTitle = document.getElementById('cliente-modal-title');
+
     let currentCotizacionId = null;
     
     // Inicializar la aplicación
@@ -122,6 +127,66 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('[data-modal="cliente-modal"].close-modal').addEventListener('click', () => {
             cerrarModal('cliente-modal');
         });
+
+        // Botones de edición
+        btnEditCliente.addEventListener('click', () => editClienteSeleccionado());
+        btnEditItem.addEventListener('click', () => editItemSeleccionado());
+        
+        // Cambios en el select de cliente para habilitar/deshabilitar edición
+        clienteSelect.addEventListener('change', () => {
+            btnEditCliente.disabled = !clienteSelect.value;
+        });
+        
+        // Cambios en el select de items para habilitar/deshabilitar edición
+        document.addEventListener('change', (e) => {
+            if (e.target.classList.contains('item-select')) {
+                const hayItemSeleccionado = Array.from(document.querySelectorAll('.item-select'))
+                    .some(select => select.value);
+                btnEditItem.disabled = !hayItemSeleccionado;
+            }
+        });
+    }
+
+    // Función para editar cliente seleccionado
+    async function editClienteSeleccionado() {
+        const clienteId = clienteSelect.value;
+        if (!clienteId) return;
+        
+        try {
+            const response = await fetch(`${API_URL}/clientes/${clienteId}`);
+            if (!response.ok) throw new Error('Error al cargar el cliente');
+            
+            const cliente = await response.json();
+            openClienteModal(cliente);
+        } catch (error) {
+            showError('Error al cargar el cliente: ' + error.message);
+        }
+    }
+
+    // Función para editar item seleccionado
+    async function editItemSeleccionado() {
+        // Encontrar el primer item seleccionado
+        const itemSelects = document.querySelectorAll('.item-select');
+        let itemId = null;
+        
+        for (const select of itemSelects) {
+            if (select.value) {
+                itemId = select.value;
+                break;
+            }
+        }
+        
+        if (!itemId) return;
+        
+        try {
+            const response = await fetch(`${API_URL}/items/${itemId}`);
+            if (!response.ok) throw new Error('Error al cargar el item');
+            
+            const item = await response.json();
+            openItemModal(item);
+        } catch (error) {
+            showError('Error al cargar el item: ' + error.message);
+        }
     }
 
     // Función para abrir el modal de cliente
